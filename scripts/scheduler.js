@@ -19,7 +19,7 @@ const SUPPORTED_EXTENSIONS = new Set(['.mp4', '.mov', '.m4v', '.webm']);
 const CLIENT_ID = process.env.YOUTUBE_CLIENT_ID;
 const CLIENT_SECRET = process.env.YOUTUBE_CLIENT_SECRET;
 const REFRESH_TOKEN = process.env.YOUTUBE_REFRESH_TOKEN;
-const PRIVACY_STATUS = (process.env.YOUTUBE_PRIVACY_STATUS || 'private').toLowerCase();
+const PRIVACY_STATUS = (process.env.YOUTUBE_PRIVACY_STATUS || 'public').toLowerCase();
 
 const DEFAULT_CHANNEL_DESCRIPTION = `Welcome to Wanderlens_28 ❤️
 
@@ -236,7 +236,7 @@ async function runScheduler() {
       auth: oauth2Client
     });
 
-    const validPrivacy = ['private', 'unlisted', 'public'].includes(PRIVACY_STATUS) ? PRIVACY_STATUS : 'private';
+    const validPrivacy = ['private', 'unlisted', 'public'].includes(PRIVACY_STATUS) ? PRIVACY_STATUS : 'public';
 
     const res = await youtube.videos.insert({
       part: ['snippet', 'status'],

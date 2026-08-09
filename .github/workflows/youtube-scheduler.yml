@@ -2,8 +2,7 @@ name: YouTube Shorts Automated Scheduler
 
 on:
   schedule:
-    - cron: '0 11 * * *'
-      timezone: 'Asia/Kolkata'
+    - cron: '30 17 * * *'
   workflow_dispatch:
 
 concurrency:
