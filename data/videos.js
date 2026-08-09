@@ -19,11 +19,11 @@ window.VIDEOS_DATA = {
       "title": "Har ek ki zindagi main samay aata hai..!",
       "description": "Welcome to Wanderlens_28 ❤️\n\nA journey of bikes, roads, travel, emotions and unforgettable moments. 🏍️✨\nHere you’ll find cinematic bike rides, travel adventures, scenic views, Shayari, love, motivation and moments captured straight from the heart.\n\nIf you love riding, travelling, exploring new places and feeling every moment, you’re in the right place. 🌍❤️\n\nSubscribe to Wanderlens_28 and join the journey. 🔔\n\n#Wanderlens28 #BikeRide #TravelVlog #BikeVlog #Travel #Shayari #Motivation #Love #RoadTrip #BikerLife",
       "tags": [ "Wanderlens 28", "Wanderlens", "bike ride", "motorcycle ride", "bike vlog", "travel vlog", "road trip", "riding videos", "solo ride", "cinematic ride", "travel reels", "Hindi shayari", "Hinglish shayari", "love shayari", "motivational shayari", "romantic quotes", "life quotes", "travel motivation", "biker lifestyle", "India travel", "scenic rides", "sunset ride", "adventure travel" ],
-      "status": "scheduled",
+      "status": "published",
       "scheduledAt": "2026-08-10T13:10:00.000Z",
-      "youtubeVideoId": null,
-      "youtubeUrl": null,
-      "publishedAt": null,
+      "youtubeVideoId": "0sOZTOSdogM",
+      "youtubeUrl": "https://www.youtube.com/watch?v=0sOZTOSdogM",
+      "publishedAt": "2026-08-09T13:36:04.726Z",
       "error": null
     },
     {

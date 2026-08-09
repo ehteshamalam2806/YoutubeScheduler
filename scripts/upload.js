@@ -97,7 +97,8 @@ async function uploadVideo() {
           tags: targetVideo.tags || []
         },
         status: {
-          privacyStatus: 'private' // Test mode: private upload
+          privacyStatus: 'private', // Test mode: private upload
+          selfDeclaredMadeForKids: false
         }
       },
       media: {

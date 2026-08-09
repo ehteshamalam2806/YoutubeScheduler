@@ -248,7 +248,8 @@ async function runScheduler() {
           categoryId: '22'
         },
         status: {
-          privacyStatus: validPrivacy
+          privacyStatus: validPrivacy,
+          selfDeclaredMadeForKids: false
         }
       },
       media: {
@@ -265,6 +266,8 @@ async function runScheduler() {
     console.log('');
     console.log(`YouTube Video ID: ${videoId}`);
     console.log(`YouTube URL: ${videoUrl}`);
+    console.log(`Privacy Status: ${res.data.status?.privacyStatus}`);
+    console.log(`Self Declared Made For Kids: ${res.data.status?.selfDeclaredMadeForKids}`);
     console.log('');
     console.log('Updating state...');
 
