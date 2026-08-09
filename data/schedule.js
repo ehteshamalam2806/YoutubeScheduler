@@ -3,7 +3,7 @@ window.SCHEDULE_DATA = {
   "startDate": "2026-08-09",
   "videosPerDay": 1,
   "uploadTimes": [
-    "18:10"
+    "18:30"
   ],
   "timezone": "Asia/Kolkata"
 };

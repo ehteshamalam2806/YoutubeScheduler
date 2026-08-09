@@ -24,8 +24,10 @@ Thumbs.db
 *.swp
 *.swo
 
-# Videos (completely ignored to prevent Git LFS bandwidth/quota push errors)
+# Videos (ignore all except active LFS target video pointer)
 videos/*
 !videos/.gitkeep
+!videos/Video_001.MOV
+
 
 
