@@ -1,4 +1,6 @@
 {
-  "nextVideoIndex": 0,
-  "uploadedVideos": []
+  "nextVideoIndex": 1,
+  "uploadedVideos": [
+    "Video_001.MOV"
+  ]
 }
