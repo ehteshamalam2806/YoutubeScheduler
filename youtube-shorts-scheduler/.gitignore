@@ -1,0 +1,29 @@
+# Node dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment & Credentials (NEVER COMMIT SENSITIVE DATA)
+.env
+.env.local
+credentials/
+token.json
+token*.json
+client_secret.json
+client_secret*.json
+*.pem
+
+# Media Files (Keep only .gitkeep in videos directory)
+videos/*
+!videos/.gitkeep
+
+# System / OS
+.DS_Store
+Thumbs.db
+
+# IDEs & Editors
+.vscode/
+.idea/
+*.swp
+*.swo

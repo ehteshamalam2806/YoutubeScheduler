@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Shorts Scheduler - Channel Dashboard</title>
+  <meta name="description" content="Personal YouTube Shorts automation dashboard for managing video queue, schedule status, and upload metrics.">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Header Navbar -->
+    <header class="navbar" id="main-header">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">⚡</div>
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <h1 class="brand-title">ShortsScheduler</h1>
+            <span class="brand-badge">Automation</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <div class="mode-tag" title="Static frontend dashboard running without stored API credentials">
+          <span class="status-dot"></span>
+          <span>Static Dashboard Active</span>
+        </div>
+
+        <button id="theme-toggle" class="btn-icon" aria-label="Toggle Theme" title="Toggle Light/Dark Theme">
+          🌙
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="dashboard-grid">
+
+      <!-- Stats Overview Section -->
+      <section aria-labelledby="stats-heading">
+        <div class="stats-header">
+          <h2 id="stats-heading" class="section-title">📊 Queue Overview</h2>
+          <span id="last-updated" style="font-size: 0.8rem; color: var(--text-muted);">Synced from videos.json</span>
+        </div>
+
+        <div class="metrics-grid">
+          <!-- Total Videos -->
+          <article class="stat-card total" id="card-total">
+            <div class="stat-top">
+              <span class="stat-label">Total Videos</span>
+              <div class="stat-icon-wrap">🎬</div>
+            </div>
+            <div class="stat-value" id="val-total">0</div>
+            <div class="stat-subtext">All queued & uploaded shorts</div>
+          </article>
+
+          <!-- Pending Videos -->
+          <article class="stat-card pending" id="card-pending">
+            <div class="stat-top">
+              <span class="stat-label">Pending</span>
+              <div class="stat-icon-wrap">⏳</div>
+            </div>
+            <div class="stat-value" id="val-pending">0</div>
+            <div class="stat-subtext">Awaiting schedule timestamp</div>
+          </article>
+
+          <!-- Scheduled Videos -->
+          <article class="stat-card scheduled" id="card-scheduled">
+            <div class="stat-top">
+              <span class="stat-label">Scheduled</span>
+              <div class="stat-icon-wrap">📅</div>
+            </div>
+            <div class="stat-value" id="val-scheduled">0</div>
+            <div class="stat-subtext">Ready for GitHub Actions upload</div>
+          </article>
+
+          <!-- Published Videos -->
+          <article class="stat-card published" id="card-published">
+            <div class="stat-top">
+              <span class="stat-label">Published</span>
+              <div class="stat-icon-wrap">🚀</div>
+            </div>
+            <div class="stat-value" id="val-published">0</div>
+            <div class="stat-subtext">Successfully live on YouTube</div>
+          </article>
+
+          <!-- Failed Videos -->
+          <article class="stat-card failed" id="card-failed">
+            <div class="stat-top">
+              <span class="stat-label">Failed</span>
+              <div class="stat-icon-wrap">⚠️</div>
+            </div>
+            <div class="stat-value" id="val-failed">0</div>
+            <div class="stat-subtext">Upload errors requiring review</div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Schedule Automation & Timeline Section -->
+      <section class="schedule-section" aria-labelledby="schedule-heading">
+        <div class="schedule-grid">
+          <!-- Schedule Config Form Card -->
+          <div class="schedule-card">
+            <h2 id="schedule-heading" class="section-title">⚙️ Schedule Settings</h2>
+            
+            <form id="schedule-form" class="schedule-form">
+              <div class="form-group">
+                <label for="sched-start-date">Start Date</label>
+                <input type="date" id="sched-start-date" class="form-input" value="2026-08-10">
+              </div>
+
+              <div class="form-group">
+                <label for="sched-vpd">Videos Per Day</label>
+                <select id="sched-vpd" class="form-select">
+                  <option value="1">1 Short / Day</option>
+                  <option value="2" selected>2 Shorts / Day</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Upload Times (IST - Asia/Kolkata)</label>
+                <div style="display: flex; gap: 0.5rem;">
+                  <input type="time" id="sched-time-1" class="form-input" value="12:30" style="flex: 1;">
+                  <input type="time" id="sched-time-2" class="form-input" value="19:30" style="flex: 1;">
+                </div>
+              </div>
+
+              <button type="submit" id="btn-generate-schedule" class="btn-primary">
+                ⚡ Apply & Generate Schedule
+              </button>
+            </form>
+          </div>
+
+          <!-- Calendar / Timeline View -->
+          <div class="schedule-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h3 class="section-title">📅 Upcoming Scheduled Videos</h3>
+              <span id="scheduled-count-badge" class="badge-status scheduled">0 Scheduled</span>
+            </div>
+
+            <div class="timeline-container" id="timeline-container">
+              <!-- Rendered dynamically by app.js -->
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="spotlight-grid" aria-labelledby="spotlight-heading">
+        <!-- Next Upload Card -->
+        <article class="spotlight-card next-upload" id="next-upload-card">
+          <div>
+            <div class="next-upload-badge">⚡ Next Upload Pipeline</div>
+            <h3 class="next-upload-title" id="next-title">Loading next scheduled short...</h3>
+            <p id="next-description" style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;"></p>
+          </div>
+
+          <div>
+            <div class="countdown-box" id="countdown-box">
+              <div class="countdown-unit">
+                <span class="countdown-num" id="cd-days">00</span>
+                <span class="countdown-lbl">Days</span>
+              </div>
+              <div class="countdown-unit">
+                <span class="countdown-num" id="cd-hours">00</span>
+                <span class="countdown-lbl">Hours</span>
+              </div>
+              <div class="countdown-unit">
+                <span class="countdown-num" id="cd-mins">00</span>
+                <span class="countdown-lbl">Mins</span>
+              </div>
+              <div class="countdown-unit">
+                <span class="countdown-num" id="cd-secs">00</span>
+                <span class="countdown-lbl">Secs</span>
+              </div>
+            </div>
+
+            <div class="next-upload-meta">
+              <div class="meta-item">
+                <span>🗓️ Target:</span>
+                <strong id="next-date-formatted">--</strong>
+              </div>
+              <div class="meta-item">
+                <span>📁 File:</span>
+                <code id="next-filename" style="background: rgba(0,0,0,0.3); padding: 0.1rem 0.4rem; border-radius: 4px;">--</code>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Upload Frequency Widget -->
+        <article class="spotlight-card frequency-widget">
+          <div>
+            <h3 class="section-title">📈 Upload Frequency</h3>
+            <div class="freq-rate" id="freq-rate-text">1 Short / Day</div>
+            <p class="freq-details">Automated upload target rate configured for maximum YouTube Shorts feed algorithm distribution.</p>
+          </div>
+
+          <div>
+            <div class="freq-bars" id="freq-bars-container">
+              <!-- Rendered dynamically by JS -->
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-muted);">
+              <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- Video Queue Management & Table -->
+      <section class="queue-section" aria-labelledby="recent-videos-heading">
+        <div class="queue-controls">
+          <h2 id="recent-videos-heading" class="section-title">📹 Recent Videos Queue</h2>
+
+          <!-- Filter Pills -->
+          <div class="filter-pills" id="filter-pills">
+            <button class="pill-btn active" data-filter="all">All Videos</button>
+            <button class="pill-btn" data-filter="scheduled">Scheduled</button>
+            <button class="pill-btn" data-filter="pending">Pending</button>
+            <button class="pill-btn" data-filter="uploading">Uploading</button>
+            <button class="pill-btn" data-filter="published">Published</button>
+            <button class="pill-btn" data-filter="failed">Failed</button>
+          </div>
+
+          <!-- Search Input -->
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-input" class="search-input" placeholder="Search by title, tag, or file...">
+          </div>
+        </div>
+
+        <!-- Video Queue Table -->
+        <div class="table-responsive">
+          <table class="video-table">
+            <thead>
+              <tr>
+                <th>File Name</th>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Scheduled Time</th>
+                <th>YouTube URL</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="video-table-body">
+              <!-- Dynamic rows rendered by app.js -->
+            </tbody>
+          </table>
+        </div>
+
+        <div id="empty-state" class="empty-state" style="display: none;">
+          <div class="empty-icon">🔍</div>
+          <h3>No matching videos found</h3>
+          <p>Try adjusting your search criteria or status filter.</p>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>YouTube Shorts Scheduler • Static Dashboard UI for Personal Channel Automation</p>
+      <p style="margin-top: 0.25rem;">Frontend hostable on GitHub Pages • Backend runs on Node.js / GitHub Actions</p>
+    </footer>
+
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal-overlay" id="video-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-title" style="font-weight: 700;">Video Details</h3>
+        <button class="modal-close" id="modal-close-btn">&times;</button>
+      </div>
+      <div id="modal-body">
+        <!-- Filled dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Data & Frontend Logic -->
+  <script src="../data/videos.js"></script>
+  <script src="../data/schedule.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

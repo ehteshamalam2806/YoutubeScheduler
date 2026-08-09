@@ -1,0 +1,29 @@
+{
+  "name": "youtube-shorts-scheduler",
+  "version": "1.0.0",
+  "description": "Personal Youtube Shorts automation scheduler using Node.js, Google OAuth 2.0, GitHub Actions, and static frontend dashboard.",
+  "main": "scripts/upload.js",
+  "type": "module",
+  "scripts": {
+    "scan": "node scripts/scan.js",
+    "schedule": "node scripts/schedule.js",
+    "auth": "node scripts/auth.js",
+    "upload": "node scripts/upload.js",
+    "scheduler": "node scripts/scheduler.js",
+    "test:utils": "node scripts/utils.js"
+  },
+  "keywords": [
+    "youtube",
+    "shorts",
+    "automation",
+    "scheduler",
+    "github-actions"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "google-auth-library": "^11.0.0",
+    "googleapis": "^174.0.1"
+  }
+}

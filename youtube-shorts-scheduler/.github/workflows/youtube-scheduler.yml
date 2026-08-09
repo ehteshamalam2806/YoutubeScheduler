@@ -1,0 +1,54 @@
+name: YouTube Shorts Automated Scheduler
+
+on:
+  schedule:
+    - cron: '0 11 * * *'
+      timezone: 'Asia/Kolkata'
+  workflow_dispatch:
+
+concurrency:
+  group: youtube-upload-scheduler
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  upload-short:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository Metadata (Pointers Only)
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Project Dependencies
+        run: npm ci
+
+      - name: Execute Production Single Video Scheduler
+        env:
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          YOUTUBE_PRIVACY_STATUS: ${{ secrets.YOUTUBE_PRIVACY_STATUS }}
+        run: npm run scheduler
+
+      - name: Commit & Push Upload State
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/upload-state.json data/videos.json data/videos.js
+          if git diff --staged --quiet; then
+            echo "No state changes to commit."
+          else
+            git commit -m "chore: update upload state after successful video upload"
+            git push
+          fi
