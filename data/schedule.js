@@ -1,6 +1,6 @@
 window.SCHEDULE_DATA = {
   "enabled": true,
-  "startDate": "2026-08-10",
+  "startDate": "2026-08-09",
   "videosPerDay": 1,
   "uploadTimes": [
     "18:00"

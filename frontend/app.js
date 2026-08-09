@@ -220,7 +220,7 @@ class DashboardApp {
       if (descEl) descEl.textContent = 'Run "npm run scan" to detect new files and assign a schedule timestamp.';
       if (dateEl) dateEl.textContent = 'N/A';
       if (fileEl) fileEl.textContent = 'N/A';
-      this.updateCountdown(null);
+      this.setCountdownValues(0, 0, 0, 0);
       return;
     }
 
@@ -262,10 +262,28 @@ class DashboardApp {
 
   setCountdownValues(d, h, m, s) {
     const pad = n => String(n).padStart(2, '0');
-    document.getElementById('cd-days').textContent = pad(d);
-    document.getElementById('cd-hours').textContent = pad(h);
-    document.getElementById('cd-mins').textContent = pad(m);
-    document.getElementById('cd-secs').textContent = pad(s);
+    const daysEl = document.getElementById('cd-days');
+    const hoursEl = document.getElementById('cd-hours');
+    const minsEl = document.getElementById('cd-mins');
+    const secsEl = document.getElementById('cd-secs');
+
+    if (daysEl) daysEl.textContent = pad(d);
+    if (hoursEl) hoursEl.textContent = pad(h);
+    if (minsEl) minsEl.textContent = pad(m);
+    if (secsEl) secsEl.textContent = pad(s);
+  }
+
+  renderUploadFrequency() {
+    const rateText = document.getElementById('freq-rate-text');
+    const container = document.getElementById('freq-bars-container');
+    if (rateText) {
+      rateText.textContent = `${this.scheduleConfig.videosPerDay || 1} Short / Day`;
+    }
+    if (container) {
+      container.innerHTML = [80, 100, 75, 90, 85, 95, 70].map(h => `
+        <div class="freq-bar" style="height: ${h}%;"></div>
+      `).join('');
+    }
   }
 
   // Schedule Config Load
