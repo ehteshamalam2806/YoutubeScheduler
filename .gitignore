@@ -14,10 +14,6 @@ client_secret.json
 client_secret*.json
 *.pem
 
-# Media Files (Keep only .gitkeep in videos directory)
-videos/*
-!videos/.gitkeep
-
 # System / OS
 .DS_Store
 Thumbs.db
@@ -27,3 +23,9 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Videos (completely ignored to prevent Git LFS bandwidth/quota push errors)
+videos/*
+!videos/.gitkeep
+
+
