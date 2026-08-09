@@ -24,10 +24,9 @@ Thumbs.db
 *.swp
 *.swo
 
-# Videos (ignore all except active LFS target video pointer)
-videos/*
-!videos/.gitkeep
-!videos/Video_001.MOV
+# Videos (LFS pointer text files tracked; binaries managed by Git LFS)
+!videos/
+
 
 
 
