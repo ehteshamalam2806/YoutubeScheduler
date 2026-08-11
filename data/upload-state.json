@@ -1,7 +1,8 @@
 {
-  "nextVideoIndex": 2,
+  "nextVideoIndex": 3,
   "uploadedVideos": [
     "Video_001.MOV",
-    "Video_002.MOV"
+    "Video_002.MOV",
+    "Video_003.MOV"
   ]
 }
