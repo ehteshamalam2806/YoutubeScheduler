@@ -26,7 +26,7 @@ const DEFAULT_CHANNEL_DESCRIPTION = `Welcome to Ehte's Wanderlens ❤️
 A journey of bikes, roads, travel, emotions and unforgettable moments. 🏍️✨
 Here you’ll find cinematic bike rides, travel adventures, scenic views, Shayari, love, motivation and moments captured straight from the heart.
 
-📸 Instagram: @wanderlens_28
+📸 Instagram: https://www.instagram.com/wanderlens_28
 ▶️ YouTube: Ehte's Wanderlens
 
 If you love riding, travelling, exploring new places and feeling every moment, you’re in the right place. 🌍❤️
