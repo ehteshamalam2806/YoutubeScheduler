@@ -9,20 +9,41 @@ const __dirname = path.dirname(__filename);
 const VIDEOS_DIR = path.join(__dirname, '../videos');
 const DATA_FILE = path.join(__dirname, '../data/videos.json');
 const SUPPORTED_EXTENSIONS = new Set(['.mp4', '.mov', '.webm', '.mkv']);
-const DEFAULT_CHANNEL_DESCRIPTION = `Welcome to Wanderlens_28 ❤️
+const DEFAULT_CHANNEL_DESCRIPTION = `Welcome to Ehte's Wanderlens ❤️
 
 A journey of bikes, roads, travel, emotions and unforgettable moments. 🏍️✨
 Here you’ll find cinematic bike rides, travel adventures, scenic views, Shayari, love, motivation and moments captured straight from the heart.
 
+📸 Instagram: @wanderlens_28
+▶️ YouTube: Ehte's Wanderlens
+
 If you love riding, travelling, exploring new places and feeling every moment, you’re in the right place. 🌍❤️
 
-Subscribe to Wanderlens_28 and join the journey. 🔔
+Subscribe to Ehte's Wanderlens and join the journey. 🔔
 
-#Wanderlens28 #BikeRide #TravelVlog #BikeVlog #Travel #Shayari #Motivation #Love #RoadTrip #BikerLife`;
+--------------------------------------------------
+Keywords & SEO Tags:
+emotional status, sad status, heart touching status, broken heart status, sad quotes hindi, emotional quotes hindi, dard bhara status, hindi status, sad shayari, heart touching shayari, viral shorts, youtube shorts, instagram reels, emotional video hindi, feeling lonely status, motivational shayari hindi, romantic status, breakup status, deep life quotes, bike rider status, cinematic travel shorts, reels instagram, trending shorts, status video
+
+#EhtesWanderlens #Wanderlens28 #BikeRide #TravelVlog #BikeVlog #Travel #Shayari #Motivation #Love #RoadTrip #BikerLife #SadShayari #EmotionalStatus #ViralShorts #YouTubeShorts #InstagramReels`;
 
 const DEFAULT_CHANNEL_TAGS = [
+  "Ehtes Wanderlens",
   "Wanderlens 28",
   "Wanderlens",
+  "emotional status",
+  "sad status",
+  "heart touching status",
+  "broken heart status",
+  "sad quotes hindi",
+  "emotional quotes hindi",
+  "dard bhara status",
+  "hindi status",
+  "sad shayari",
+  "heart touching shayari",
+  "viral shorts",
+  "youtube shorts",
+  "instagram reels",
   "bike ride",
   "motorcycle ride",
   "bike vlog",

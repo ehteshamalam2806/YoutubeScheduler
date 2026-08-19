@@ -21,23 +21,34 @@ const CLIENT_SECRET = process.env.YOUTUBE_CLIENT_SECRET;
 const REFRESH_TOKEN = process.env.YOUTUBE_REFRESH_TOKEN;
 const PRIVACY_STATUS = (process.env.YOUTUBE_PRIVACY_STATUS || 'public').toLowerCase();
 
-const DEFAULT_CHANNEL_DESCRIPTION = `Welcome to Wanderlens_28 ❤️
+const DEFAULT_CHANNEL_DESCRIPTION = `Welcome to Ehte's Wanderlens ❤️
 
 A journey of bikes, roads, travel, emotions and unforgettable moments. 🏍️✨
 Here you’ll find cinematic bike rides, travel adventures, scenic views, Shayari, love, motivation and moments captured straight from the heart.
 
+📸 Instagram: @wanderlens_28
+▶️ YouTube: Ehte's Wanderlens
+
 If you love riding, travelling, exploring new places and feeling every moment, you’re in the right place. 🌍❤️
 
-Subscribe to Wanderlens_28 and join the journey. 🔔
+Subscribe to Ehte's Wanderlens and join the journey. 🔔
 
-#Wanderlens28 #BikeRide #TravelVlog #BikeVlog #Travel #Shayari #Motivation #Love #RoadTrip #BikerLife`;
+--------------------------------------------------
+Keywords & SEO Tags:
+emotional status, sad status, heart touching status, broken heart status, sad quotes hindi, emotional quotes hindi, dard bhara status, hindi status, sad shayari, heart touching shayari, viral shorts, youtube shorts, instagram reels, emotional video hindi, feeling lonely status, motivational shayari hindi, romantic status, breakup status, deep life quotes, bike rider status, cinematic travel shorts, reels instagram, trending shorts, status video
+
+#EhtesWanderlens #Wanderlens28 #BikeRide #TravelVlog #BikeVlog #Travel #Shayari #Motivation #Love #RoadTrip #BikerLife #SadShayari #EmotionalStatus #ViralShorts #YouTubeShorts #InstagramReels`;
 
 const DEFAULT_CHANNEL_TAGS = [
-  "Wanderlens 28", "Wanderlens", "bike ride", "motorcycle ride", "bike vlog",
-  "travel vlog", "road trip", "riding videos", "solo ride", "cinematic ride",
-  "travel reels", "Hindi shayari", "Hinglish shayari", "love shayari",
-  "motivational shayari", "romantic quotes", "life quotes", "travel motivation",
-  "biker lifestyle", "India travel", "scenic rides", "sunset ride", "adventure travel"
+  "Ehtes Wanderlens", "Wanderlens 28", "Wanderlens", "emotional status",
+  "sad status", "heart touching status", "broken heart status", "sad quotes hindi",
+  "emotional quotes hindi", "dard bhara status", "hindi status", "sad shayari",
+  "heart touching shayari", "viral shorts", "youtube shorts", "instagram reels",
+  "bike ride", "motorcycle ride", "bike vlog", "travel vlog", "road trip",
+  "riding videos", "solo ride", "cinematic ride", "travel reels", "Hindi shayari",
+  "Hinglish shayari", "love shayari", "motivational shayari", "romantic quotes",
+  "life quotes", "travel motivation", "biker lifestyle", "India travel",
+  "scenic rides", "sunset ride", "adventure travel"
 ];
 
 /**
