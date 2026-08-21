@@ -1,8 +1,8 @@
 /**
  * YouTube Shorts Scheduler - Dashboard Application Logic
  * 
- * Manages stats metric calculations, queue filtering, countdown timer,
- * theme switching, and video detail view.
+ * Manages dynamic schedule calculations, stats metrics, queue filtering, 
+ * countdown timer, theme switching, and video detail view.
  */
 
 // Embedded default fallback dataset if running directly via file:// protocol without HTTP server
@@ -97,6 +97,7 @@ class DashboardApp {
     this.setupTheme();
     await this.fetchData();
     this.loadScheduleConfig();
+    this.computeEffectiveSchedule();
     this.renderMetrics();
     this.renderNextUpload();
     this.renderUploadFrequency();
@@ -133,15 +134,9 @@ class DashboardApp {
 
   // Data Fetching
   async fetchData() {
-    // 1. Prioritize window.VIDEOS_DATA if loaded via script tag (bypasses CORS restrictions on file:// URLs)
-    if (window.VIDEOS_DATA && Array.isArray(window.VIDEOS_DATA.videos)) {
-      this.videos = window.VIDEOS_DATA.videos;
-      return;
-    }
-
-    // 2. Fallback to HTTP fetch if window.VIDEOS_DATA is not present
+    // 1. Try HTTP fetch with cache-busting timestamp to guarantee latest data on local/hosted web server
     try {
-      const res = await fetch('../data/videos.json');
+      const res = await fetch('../data/videos.json?t=' + Date.now());
       if (res.ok) {
         const data = await res.json();
         if (data && Array.isArray(data.videos)) {
@@ -153,20 +148,174 @@ class DashboardApp {
         }
       }
     } catch (e) {
-      console.warn('Fetch fallback triggered:', e.message);
+      // Ignore CORS/network errors if running via local file:// protocol
     }
 
-    // 3. Last fallback
+    // 2. Fallback to window.VIDEOS_DATA (bypasses CORS restrictions when opening file:// directly)
+    if (window.VIDEOS_DATA && Array.isArray(window.VIDEOS_DATA.videos)) {
+      this.videos = window.VIDEOS_DATA.videos;
+      return;
+    }
+
+    // 3. Fallback dataset
     this.videos = (FALLBACK_DATASET && FALLBACK_DATASET.videos) || [];
+  }
+
+  // Schedule Config Load
+  async loadScheduleConfig() {
+    try {
+      const res = await fetch('../data/schedule.json?t=' + Date.now());
+      if (res.ok) {
+        const data = await res.json();
+        if (data) {
+          this.scheduleConfig = { ...this.scheduleConfig, ...data };
+          return;
+        }
+      }
+    } catch (e) {}
+
+    if (window.SCHEDULE_DATA) {
+      this.scheduleConfig = { ...this.scheduleConfig, ...window.SCHEDULE_DATA };
+    }
+  }
+
+  /**
+   * Helper: Formats Date object into YYYY-MM-DD string in local/Kolkata context
+   */
+  getLocalDateString(dateObj) {
+    if (!dateObj || isNaN(dateObj.getTime())) return '';
+    const yyyy = dateObj.getFullYear();
+    const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const dd = String(dateObj.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  /**
+   * Helper: Creates an ISO string with +05:30 Kolkata offset for a given date and time string
+   */
+  createKolkataIso(dateObj, timeStr) {
+    const yyyy = dateObj.getFullYear();
+    const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const dd = String(dateObj.getDate()).padStart(2, '0');
+    const [hh, min] = (timeStr || '11:00').split(':').map(s => String(s).padStart(2, '0'));
+
+    const kolkataIso = `${yyyy}-${mm}-${dd}T${hh}:${min}:00+05:30`;
+    const d = new Date(kolkataIso);
+    return isNaN(d.getTime()) ? dateObj.toISOString() : d.toISOString();
+  }
+
+  /**
+   * DYNAMIC SCHEDULE ENGINE
+   * 
+   * Computes the effective schedule for all videos dynamically:
+   * 1. Published videos retain their fixed actual published/uploaded date.
+   * 2. Failed videos show Failed status and do NOT consume a successful publishing slot.
+   * 3. Scheduled/Pending videos automatically shift forward to fill available publishing slots.
+   * 4. Does not mutate original scheduledAt data permanently.
+   */
+  computeEffectiveSchedule() {
+    if (!Array.isArray(this.videos) || this.videos.length === 0) return;
+
+    // 1. Determine effective status & fixed display dates for published/failed items
+    this.videos.forEach(v => {
+      const isPublished = v.status === 'published' || (v.youtubeVideoId && String(v.youtubeVideoId).trim().length > 0);
+      const isFailed = !isPublished && (v.status === 'failed' || (v.error && String(v.error).trim().length > 0));
+
+      if (isPublished) {
+        v.effectiveStatus = 'published';
+        v.publishedDisplayDate = v.publishedAt || v.publishedDate || v.uploadedDate || v.scheduledAt || null;
+      } else if (isFailed) {
+        v.effectiveStatus = 'failed';
+        v.publishedDisplayDate = null;
+      } else if (v.status === 'uploading') {
+        v.effectiveStatus = 'uploading';
+        v.publishedDisplayDate = null;
+      } else {
+        v.effectiveStatus = (v.scheduledAt || v.status === 'scheduled') ? 'scheduled' : 'pending';
+        v.publishedDisplayDate = null;
+      }
+    });
+
+    // 2. Build set of dates (YYYY-MM-DD) occupied by Published videos
+    const publishedDatesSet = new Set();
+    this.videos.forEach(v => {
+      if (v.effectiveStatus === 'published' && v.publishedDisplayDate) {
+        const d = new Date(v.publishedDisplayDate);
+        if (!isNaN(d.getTime())) {
+          publishedDatesSet.add(this.getLocalDateString(d));
+        }
+      }
+    });
+
+    // 3. Determine base start date
+    let baseStartDate = new Date(this.scheduleConfig.startDate || '2026-08-10');
+    if (isNaN(baseStartDate.getTime())) {
+      baseStartDate = new Date('2026-08-10');
+    }
+
+    const firstScheduled = this.videos.find(v => v.scheduledAt);
+    if (firstScheduled) {
+      const firstDate = new Date(firstScheduled.scheduledAt);
+      if (!isNaN(firstDate.getTime()) && firstDate < baseStartDate) {
+        baseStartDate = new Date(firstDate.getFullYear(), firstDate.getMonth(), firstDate.getDate());
+      }
+    }
+
+    const vpd = Math.min(2, Math.max(1, parseInt(this.scheduleConfig.videosPerDay, 10) || 1));
+    const uploadTimes = (this.scheduleConfig.uploadTimes && this.scheduleConfig.uploadTimes.length > 0)
+      ? this.scheduleConfig.uploadTimes
+      : ['11:00'];
+
+    // 4. Dynamically assign available publishing slots to remaining unuploaded videos (failed, scheduled, pending)
+    let currDate = new Date(baseStartDate.getFullYear(), baseStartDate.getMonth(), baseStartDate.getDate());
+    let slotIdx = 0;
+    const usedDatesSet = new Set(publishedDatesSet);
+
+    // If there are failed videos with an original scheduled date on or before baseStartDate, skip past their failure date to advance to next day slot
+    this.videos.forEach(v => {
+      if (v.effectiveStatus === 'failed' && v.scheduledAt) {
+        const fDate = new Date(v.scheduledAt);
+        if (!isNaN(fDate.getTime())) {
+          usedDatesSet.add(this.getLocalDateString(fDate));
+        }
+      }
+    });
+
+    this.videos.forEach(v => {
+      if (v.effectiveStatus !== 'published') {
+        // Find next available slot date that is not in usedDatesSet
+        while (true) {
+          const dateStr = this.getLocalDateString(currDate);
+          if (!usedDatesSet.has(dateStr)) {
+            const timeStr = uploadTimes[slotIdx % vpd] || uploadTimes[0] || '11:00';
+            v.effectiveScheduledAt = this.createKolkataIso(currDate, timeStr);
+
+            slotIdx++;
+            if (slotIdx >= vpd) {
+              usedDatesSet.add(dateStr);
+              currDate.setDate(currDate.getDate() + 1);
+              slotIdx = 0;
+            }
+            break;
+          } else {
+            // Date is occupied by a published video, failure attempt date, or previous slot: advance to next day
+            currDate.setDate(currDate.getDate() + 1);
+            slotIdx = 0;
+          }
+        }
+      } else {
+        v.effectiveScheduledAt = v.publishedDisplayDate || v.scheduledAt || null;
+      }
+    });
   }
 
   // Metrics Grid Calculations
   renderMetrics() {
     const total = this.videos.length;
-    const pending = this.videos.filter(v => v.status === 'pending').length;
-    const scheduled = this.videos.filter(v => v.status === 'scheduled').length;
-    const published = this.videos.filter(v => v.status === 'published').length;
-    const failed = this.videos.filter(v => v.status === 'failed').length;
+    const pending = this.videos.filter(v => v.effectiveStatus === 'pending').length;
+    const scheduled = this.videos.filter(v => v.effectiveStatus === 'scheduled').length;
+    const published = this.videos.filter(v => v.effectiveStatus === 'published').length;
+    const failed = this.videos.filter(v => v.effectiveStatus === 'failed').length;
 
     this.animateNumber('val-total', total);
     this.animateNumber('val-pending', pending);
@@ -205,10 +354,10 @@ class DashboardApp {
   renderNextUpload() {
     const now = new Date();
     const scheduledVideos = this.videos
-      .filter(v => v.status === 'scheduled' && v.scheduledAt)
-      .sort((a, b) => new Date(a.scheduledAt) - new Date(b.scheduledAt));
+      .filter(v => v.effectiveStatus === 'scheduled' && v.effectiveScheduledAt)
+      .sort((a, b) => new Date(a.effectiveScheduledAt) - new Date(b.effectiveScheduledAt));
 
-    const nextVideo = scheduledVideos.find(v => new Date(v.scheduledAt) > now) || scheduledVideos[0];
+    const nextVideo = scheduledVideos.find(v => new Date(v.effectiveScheduledAt) > now) || scheduledVideos[0];
 
     const titleEl = document.getElementById('next-title');
     const descEl = document.getElementById('next-description');
@@ -226,10 +375,10 @@ class DashboardApp {
 
     if (titleEl) titleEl.textContent = nextVideo.title || nextVideo.fileName;
     if (descEl) descEl.textContent = nextVideo.description || 'No description added yet.';
-    if (dateEl) dateEl.textContent = this.formatDate(nextVideo.scheduledAt);
+    if (dateEl) dateEl.textContent = this.formatDate(nextVideo.effectiveScheduledAt);
     if (fileEl) fileEl.textContent = nextVideo.fileName;
 
-    this.startCountdown(nextVideo.scheduledAt);
+    this.startCountdown(nextVideo.effectiveScheduledAt);
   }
 
   startCountdown(targetIso) {
@@ -286,13 +435,6 @@ class DashboardApp {
     }
   }
 
-  // Schedule Config Load
-  loadScheduleConfig() {
-    if (window.SCHEDULE_DATA) {
-      this.scheduleConfig = { ...this.scheduleConfig, ...window.SCHEDULE_DATA };
-    }
-  }
-
   renderScheduleConfigForm() {
     const startDateInput = document.getElementById('sched-start-date');
     const vpdSelect = document.getElementById('sched-vpd');
@@ -315,8 +457,8 @@ class DashboardApp {
     if (!container) return;
 
     const scheduled = this.videos
-      .filter(v => v.status === 'scheduled' && v.scheduledAt)
-      .sort((a, b) => new Date(a.scheduledAt) - new Date(b.scheduledAt));
+      .filter(v => v.effectiveStatus === 'scheduled' && v.effectiveScheduledAt)
+      .sort((a, b) => new Date(a.effectiveScheduledAt) - new Date(b.effectiveScheduledAt));
 
     if (badge) {
       badge.textContent = `${scheduled.length} Scheduled`;
@@ -338,7 +480,7 @@ class DashboardApp {
           <div style="font-size: 0.75rem; color: var(--text-muted);">📄 ${this.escapeHtml(v.fileName)}</div>
         </div>
         <div class="timeline-date">
-          📅 ${this.formatDate(v.scheduledAt)}
+          📅 ${this.formatDate(v.effectiveScheduledAt)}
         </div>
       </div>
     `).join('');
@@ -351,7 +493,7 @@ class DashboardApp {
     if (!tbody) return;
 
     const filtered = this.videos.filter(v => {
-      const matchesFilter = this.currentFilter === 'all' || v.status === this.currentFilter;
+      const matchesFilter = this.currentFilter === 'all' || v.effectiveStatus === this.currentFilter;
       const q = this.searchQuery.toLowerCase();
       const matchesSearch = !q || 
         (v.title && v.title.toLowerCase().includes(q)) || 
@@ -369,41 +511,47 @@ class DashboardApp {
 
     if (emptyState) emptyState.style.display = 'none';
 
-    tbody.innerHTML = filtered.map(v => `
-      <tr>
-        <td>
-          <code style="background: rgba(255, 255, 255, 0.06); padding: 0.25rem 0.6rem; border-radius: 6px; font-weight: 600; color: var(--accent-cyan);">
-            ${this.escapeHtml(v.fileName)}
-          </code>
-        </td>
-        <td>
-          <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.2rem;">
-            ${this.escapeHtml(v.title || '(Untitled Video)')}
-          </div>
-          ${v.tags && v.tags.length ? `
-            <div class="video-tags">
-              ${v.tags.map(t => `<span class="tag-badge">#${this.escapeHtml(t)}</span>`).join('')}
+    tbody.innerHTML = filtered.map(v => {
+      const displayDate = v.effectiveStatus === 'published'
+        ? (v.publishedDisplayDate || v.effectiveScheduledAt)
+        : (v.effectiveScheduledAt || v.scheduledAt);
+
+      return `
+        <tr>
+          <td>
+            <code style="background: rgba(255, 255, 255, 0.06); padding: 0.25rem 0.6rem; border-radius: 6px; font-weight: 600; color: var(--accent-cyan);">
+              ${this.escapeHtml(v.fileName)}
+            </code>
+          </td>
+          <td>
+            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.2rem;">
+              ${this.escapeHtml(v.title || '(Untitled Video)')}
             </div>
-          ` : ''}
-        </td>
-        <td>
-          <span class="badge-status ${v.status}">${v.status}</span>
-        </td>
-        <td>
-          <span style="font-size: 0.875rem;">${v.scheduledAt ? this.formatDate(v.scheduledAt) : '<span style="color: var(--text-muted);">Unscheduled</span>'}</span>
-        </td>
-        <td>
-          ${v.youtubeUrl ? `
-            <a href="${this.escapeHtml(v.youtubeUrl)}" target="_blank" rel="noopener noreferrer" style="color: #60a5fa; text-decoration: none; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem;">
-              <span>Link 🔗</span>
-            </a>
-          ` : `<span style="color: var(--text-muted); font-size: 0.85rem;">N/A</span>`}
-        </td>
-        <td>
-          <button class="btn-icon view-btn" data-id="${v.id}" title="View Details" style="width: 32px; height: 32px;">👁️</button>
-        </td>
-      </tr>
-    `).join('');
+            ${v.tags && v.tags.length ? `
+              <div class="video-tags">
+                ${v.tags.map(t => `<span class="tag-badge">#${this.escapeHtml(t)}</span>`).join('')}
+              </div>
+            ` : ''}
+          </td>
+          <td>
+            <span class="badge-status ${v.effectiveStatus}">${v.effectiveStatus}</span>
+          </td>
+          <td>
+            <span style="font-size: 0.875rem;">${displayDate ? this.formatDate(displayDate) : '<span style="color: var(--text-muted);">Unscheduled</span>'}</span>
+          </td>
+          <td>
+            ${v.youtubeUrl ? `
+              <a href="${this.escapeHtml(v.youtubeUrl)}" target="_blank" rel="noopener noreferrer" style="color: #60a5fa; text-decoration: none; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem;">
+                <span>Link 🔗</span>
+              </a>
+            ` : `<span style="color: var(--text-muted); font-size: 0.85rem;">N/A</span>`}
+          </td>
+          <td>
+            <button class="btn-icon view-btn" data-id="${v.id}" title="View Details" style="width: 32px; height: 32px;">👁️</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
   }
 
   // Event Listeners
@@ -434,27 +582,8 @@ class DashboardApp {
           timezone: 'Asia/Kolkata'
         };
 
-        // Client side preview scheduling for pending items
-        const pending = this.videos.filter(v => v.status === 'pending');
-        if (pending.length > 0) {
-          let currDate = new Date(startDate);
-          let pIdx = 0;
-          while (pIdx < pending.length) {
-            for (let slot = 0; slot < vpd && pIdx < pending.length; slot++) {
-              const tStr = slot === 0 ? time1 : time2;
-              const [hh, mm] = tStr.split(':');
-              const yyyy = currDate.getFullYear();
-              const mStr = String(currDate.getMonth() + 1).padStart(2, '0');
-              const dStr = String(currDate.getDate()).padStart(2, '0');
-              const iso = new Date(`${yyyy}-${mStr}-${dStr}T${hh}:${mm}:00+05:30`).toISOString();
-              
-              pending[pIdx].status = 'scheduled';
-              pending[pIdx].scheduledAt = iso;
-              pIdx++;
-            }
-            currDate.setDate(currDate.getDate() + 1);
-          }
-        }
+        // Recalculate dynamic schedule
+        this.computeEffectiveSchedule();
 
         // Re-render dashboard components
         this.renderMetrics();
@@ -462,9 +591,10 @@ class DashboardApp {
         this.renderScheduleTimeline();
         this.renderQueueTable();
 
-        alert(`Schedule updated! Configured for ${vpd} short(s)/day starting ${startDate}. (Run "npm run schedule" in terminal for Node synchronization)`);
+        alert(`Schedule updated! Configured for ${vpd} short(s)/day starting ${startDate}.`);
       });
     }
+
     // Filter Pills
     const filterContainer = document.getElementById('filter-pills');
     if (filterContainer) {
@@ -520,10 +650,13 @@ class DashboardApp {
     const body = document.getElementById('modal-body');
     if (!modal || !body) return;
 
+    const displayScheduled = video.effectiveScheduledAt || video.scheduledAt;
+    const displayPublished = video.publishedDisplayDate || (video.effectiveStatus === 'published' ? video.effectiveScheduledAt : null);
+
     body.innerHTML = `
       <div style="display: flex; flex-direction: column; gap: 1rem;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span class="badge-status ${video.status}">${video.status}</span>
+          <span class="badge-status ${video.effectiveStatus}">${video.effectiveStatus}</span>
           <code style="background: var(--bg-input); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">ID: ${this.escapeHtml(video.id)}</code>
         </div>
 
@@ -551,11 +684,11 @@ class DashboardApp {
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.85rem;">
           <div>
             <span style="color: var(--text-muted);">Scheduled At:</span><br>
-            <strong>${video.scheduledAt ? this.formatDate(video.scheduledAt) : 'N/A'}</strong>
+            <strong>${displayScheduled ? this.formatDate(displayScheduled) : 'N/A'}</strong>
           </div>
           <div>
             <span style="color: var(--text-muted);">Published At:</span><br>
-            <strong>${video.publishedAt ? this.formatDate(video.publishedAt) : 'N/A'}</strong>
+            <strong>${displayPublished ? this.formatDate(displayPublished) : 'N/A'}</strong>
           </div>
         </div>
 
@@ -593,6 +726,7 @@ class DashboardApp {
   formatDate(isoString) {
     if (!isoString) return 'N/A';
     const d = new Date(isoString);
+    if (isNaN(d.getTime())) return 'N/A';
     return d.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
