@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { google } from 'googleapis';
 import dotenv from 'dotenv';
-import { loadVideos, saveVideos } from './utils.js';
+import { loadVideos, saveVideos, sanitizeTags } from './utils.js';
 
 // Load environment variables
 dotenv.config();
@@ -94,7 +94,7 @@ async function uploadVideo() {
         snippet: {
           title: targetVideo.title || targetVideo.fileName,
           description: targetVideo.description || '',
-          tags: targetVideo.tags || []
+          tags: sanitizeTags(targetVideo.tags || [])
         },
         status: {
           privacyStatus: 'private', // Test mode: private upload

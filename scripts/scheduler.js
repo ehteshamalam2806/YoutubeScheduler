@@ -4,7 +4,7 @@ import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { google } from 'googleapis';
 import dotenv from 'dotenv';
-import { loadVideos, saveVideos } from './utils.js';
+import { loadVideos, saveVideos, sanitizeTags } from './utils.js';
 
 // Load environment variables
 dotenv.config();
@@ -44,11 +44,9 @@ const DEFAULT_CHANNEL_TAGS = [
   "sad status", "heart touching status", "broken heart status", "sad quotes hindi",
   "emotional quotes hindi", "dard bhara status", "hindi status", "sad shayari",
   "heart touching shayari", "viral shorts", "youtube shorts", "instagram reels",
-  "bike ride", "motorcycle ride", "bike vlog", "travel vlog", "road trip",
-  "riding videos", "solo ride", "cinematic ride", "travel reels", "Hindi shayari",
-  "Hinglish shayari", "love shayari", "motivational shayari", "romantic quotes",
-  "life quotes", "travel motivation", "biker lifestyle", "India travel",
-  "scenic rides", "sunset ride", "adventure travel"
+  "bike ride", "bike vlog", "travel vlog", "road trip",
+  "cinematic ride", "Hindi shayari", "love shayari", "motivational shayari",
+  "biker lifestyle", "India travel"
 ];
 
 /**
@@ -255,7 +253,7 @@ async function runScheduler() {
         snippet: {
           title: videoObj.title || path.basename(targetFileName, path.extname(targetFileName)),
           description: videoObj.description || DEFAULT_CHANNEL_DESCRIPTION,
-          tags: (videoObj.tags && videoObj.tags.length) ? videoObj.tags : DEFAULT_CHANNEL_TAGS,
+          tags: sanitizeTags((videoObj.tags && videoObj.tags.length) ? videoObj.tags : DEFAULT_CHANNEL_TAGS),
           categoryId: '22'
         },
         status: {

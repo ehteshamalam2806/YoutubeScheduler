@@ -45,26 +45,15 @@ const DEFAULT_CHANNEL_TAGS = [
   "youtube shorts",
   "instagram reels",
   "bike ride",
-  "motorcycle ride",
   "bike vlog",
   "travel vlog",
   "road trip",
-  "riding videos",
-  "solo ride",
   "cinematic ride",
-  "travel reels",
   "Hindi shayari",
-  "Hinglish shayari",
   "love shayari",
   "motivational shayari",
-  "romantic quotes",
-  "life quotes",
-  "travel motivation",
   "biker lifestyle",
-  "India travel",
-  "scenic rides",
-  "sunset ride",
-  "adventure travel"
+  "India travel"
 ];
 
 /**

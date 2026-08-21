@@ -42,11 +42,52 @@ export function formatJsonWithSingleLineTags(dataObj) {
 }
 
 /**
+ * Sanitizes and truncates video tags array to comply with YouTube Data API constraints:
+ * - Each tag is a clean string without angle brackets (< >)
+ * - Each tag <= 100 characters
+ * - Total character length of all tags joined <= maxTotalLength (default 480 chars to stay under YouTube's 500 limit)
+ * @param {Array<string>} tags 
+ * @param {number} maxTotalLength 
+ * @returns {Array<string>} Safe array of tags
+ */
+export function sanitizeTags(tags = [], maxTotalLength = 480) {
+  if (!Array.isArray(tags)) return [];
+  const safeTags = [];
+  let currentLength = 0;
+
+  for (let tag of tags) {
+    if (typeof tag !== 'string') continue;
+    let cleanTag = tag.replace(/[<>]/g, '').trim();
+    if (!cleanTag) continue;
+    if (cleanTag.length > 100) {
+      cleanTag = cleanTag.substring(0, 100).trim();
+    }
+    
+    const addedLen = safeTags.length === 0 ? cleanTag.length : cleanTag.length + 1;
+    if (currentLength + addedLen > maxTotalLength) {
+      break;
+    }
+    
+    safeTags.push(cleanTag);
+    currentLength += addedLen;
+  }
+
+  return safeTags;
+}
+
+/**
  * Saves the video queue array back to data/videos.json under { videos: [...] }
  * @param {Array} videos 
  */
 export function saveVideos(videos) {
   try {
+    if (Array.isArray(videos)) {
+      videos.forEach(v => {
+        if (v && v.tags) {
+          v.tags = sanitizeTags(v.tags);
+        }
+      });
+    }
     const dataObj = { videos };
     const jsonContent = formatJsonWithSingleLineTags(dataObj);
 
