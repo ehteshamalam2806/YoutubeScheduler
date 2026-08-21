@@ -1,80 +1,9 @@
 /**
  * YouTube Shorts Scheduler - Dashboard Application Logic
  * 
- * Manages dynamic schedule calculations, stats metrics, queue filtering, 
- * countdown timer, theme switching, and video detail view.
+ * Manages real project video dataset from videos.json, dynamic schedule calculations, 
+ * stats metrics, queue filtering, countdown timer, theme switching, and video detail view.
  */
-
-// Embedded default fallback dataset if running directly via file:// protocol without HTTP server
-const FALLBACK_DATASET = {
-  "videos": [
-    {
-      "id": "001",
-      "fileName": "001.mp4",
-      "title": "5 Insane VS Code Shortcuts You Didn't Know! ⚡ #Shorts",
-      "description": "Boost your coding speed 10x with these secret VS Code keyboard shortcuts! #coding #vscode #shorts",
-      "tags": ["coding", "vscode", "webdev", "productivity", "shorts"],
-      "status": "scheduled",
-      "scheduledAt": "2026-08-10T14:00:00.000Z",
-      "youtubeVideoId": null,
-      "youtubeUrl": null,
-      "publishedAt": null,
-      "error": null
-    },
-    {
-      "id": "002",
-      "fileName": "002.mp4",
-      "title": "JavaScript Array Tricks Senior Devs Use 🔥 #Shorts",
-      "description": "Clean up your JS code with modern array methods! #javascript #frontend #shorts",
-      "tags": ["javascript", "frontend", "tips"],
-      "status": "scheduled",
-      "scheduledAt": "2026-08-11T18:30:00.000Z",
-      "youtubeVideoId": null,
-      "youtubeUrl": null,
-      "publishedAt": null,
-      "error": null
-    },
-    {
-      "id": "003",
-      "fileName": "003.mp4",
-      "title": "CSS Grid vs Flexbox in 30 Seconds 🎨 #Shorts",
-      "description": "Stop struggling with CSS layout! Here is when to use Grid vs Flexbox. #css #webdesign #shorts",
-      "tags": ["css", "design", "webdev"],
-      "status": "pending",
-      "scheduledAt": null,
-      "youtubeVideoId": null,
-      "youtubeUrl": null,
-      "publishedAt": null,
-      "error": null
-    },
-    {
-      "id": "004",
-      "fileName": "004.mp4",
-      "title": "Python One-Liners That Will Save You Hours 🐍 #Shorts",
-      "description": "Write cleaner Python code today with these elegant one-liners! #python #coding #shorts",
-      "tags": ["python", "software", "tips"],
-      "status": "published",
-      "scheduledAt": "2026-08-08T15:00:00.000Z",
-      "youtubeVideoId": "dQw4w9WgXcQ",
-      "youtubeUrl": "https://youtube.com/shorts/dQw4w9WgXcQ",
-      "publishedAt": "2026-08-08T15:00:12.000Z",
-      "error": null
-    },
-    {
-      "id": "005",
-      "fileName": "005.mp4",
-      "title": "Async/Await Mistakes You're Making Right Now ⏳ #Shorts",
-      "description": "Avoid common promise anti-patterns in JavaScript! #js #async #shorts",
-      "tags": ["javascript", "async", "debugging"],
-      "status": "failed",
-      "scheduledAt": "2026-08-07T14:00:00.000Z",
-      "youtubeVideoId": null,
-      "youtubeUrl": null,
-      "publishedAt": null,
-      "error": "Upload failed: Invalid OAuth scope or expired token."
-    }
-  ]
-};
 
 class DashboardApp {
   constructor() {
@@ -82,13 +11,14 @@ class DashboardApp {
     this.scheduleConfig = {
       enabled: true,
       startDate: '2026-08-10',
-      videosPerDay: 2,
-      uploadTimes: ['12:30', '19:30'],
+      videosPerDay: 1,
+      uploadTimes: ['11:00'],
       timezone: 'Asia/Kolkata'
     };
     this.currentFilter = 'all';
     this.searchQuery = '';
     this.countdownInterval = null;
+    this.loadError = null;
 
     this.init();
   }
@@ -96,7 +26,7 @@ class DashboardApp {
   async init() {
     this.setupTheme();
     await this.fetchData();
-    this.loadScheduleConfig();
+    await this.loadScheduleConfig();
     this.computeEffectiveSchedule();
     this.renderMetrics();
     this.renderNextUpload();
@@ -132,56 +62,74 @@ class DashboardApp {
     }
   }
 
-  // Data Fetching
+  // Data Fetching from real project sources ONLY (No fake demo/fallback arrays)
   async fetchData() {
-    // 1. Try HTTP fetch with cache-busting timestamp to guarantee latest data on local/hosted web server
-    try {
-      const res = await fetch('../data/videos.json?t=' + Date.now());
-      if (res.ok) {
-        const data = await res.json();
-        if (data && Array.isArray(data.videos)) {
-          this.videos = data.videos;
-          return;
-        } else if (Array.isArray(data)) {
-          this.videos = data;
-          return;
-        }
-      }
-    } catch (e) {
-      // Ignore CORS/network errors if running via local file:// protocol
-    }
+    this.loadError = null;
 
-    // 2. Fallback to window.VIDEOS_DATA (bypasses CORS restrictions when opening file:// directly)
-    if (window.VIDEOS_DATA && Array.isArray(window.VIDEOS_DATA.videos)) {
+    // 1. Try window.VIDEOS_DATA loaded via script tag
+    if (window.VIDEOS_DATA && Array.isArray(window.VIDEOS_DATA.videos) && window.VIDEOS_DATA.videos.length > 0) {
       this.videos = window.VIDEOS_DATA.videos;
       return;
     }
 
-    // 3. Fallback dataset
-    this.videos = (FALLBACK_DATASET && FALLBACK_DATASET.videos) || [];
+    // 2. Multi-path HTTP fetch candidates for videos.json with cache-busting timestamp
+    const candidatePaths = [
+      '../data/videos.json?t=' + Date.now(),
+      './data/videos.json?t=' + Date.now(),
+      'data/videos.json?t=' + Date.now(),
+      '/data/videos.json?t=' + Date.now()
+    ];
+
+    for (const path of candidatePaths) {
+      try {
+        const res = await fetch(path);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && Array.isArray(data.videos) && data.videos.length > 0) {
+            this.videos = data.videos;
+            return;
+          } else if (Array.isArray(data) && data.length > 0) {
+            this.videos = data;
+            return;
+          }
+        }
+      } catch (e) {
+        // Try next candidate path
+      }
+    }
+
+    // 3. NO fallback to fake demo data! If videos.json cannot be loaded, set error flag.
+    this.videos = [];
+    this.loadError = "Unable to load videos.json. Please ensure data/videos.json is accessible.";
   }
 
   // Schedule Config Load
   async loadScheduleConfig() {
-    try {
-      const res = await fetch('../data/schedule.json?t=' + Date.now());
-      if (res.ok) {
-        const data = await res.json();
-        if (data) {
-          this.scheduleConfig = { ...this.scheduleConfig, ...data };
-          return;
+    const candidatePaths = [
+      '../data/schedule.json?t=' + Date.now(),
+      './data/schedule.json?t=' + Date.now(),
+      'data/schedule.json?t=' + Date.now(),
+      '/data/schedule.json?t=' + Date.now()
+    ];
+
+    for (const path of candidatePaths) {
+      try {
+        const res = await fetch(path);
+        if (res.ok) {
+          const data = await res.json();
+          if (data) {
+            this.scheduleConfig = { ...this.scheduleConfig, ...data };
+            return;
+          }
         }
-      }
-    } catch (e) {}
+      } catch (e) {}
+    }
 
     if (window.SCHEDULE_DATA) {
       this.scheduleConfig = { ...this.scheduleConfig, ...window.SCHEDULE_DATA };
     }
   }
 
-  /**
-   * Helper: Formats Date object into YYYY-MM-DD string in local/Kolkata context
-   */
   getLocalDateString(dateObj) {
     if (!dateObj || isNaN(dateObj.getTime())) return '';
     const yyyy = dateObj.getFullYear();
@@ -190,9 +138,6 @@ class DashboardApp {
     return `${yyyy}-${mm}-${dd}`;
   }
 
-  /**
-   * Helper: Creates an ISO string with +05:30 Kolkata offset for a given date and time string
-   */
   createKolkataIso(dateObj, timeStr) {
     const yyyy = dateObj.getFullYear();
     const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -218,12 +163,12 @@ class DashboardApp {
 
     // 1. Determine effective status & fixed display dates for published/failed items
     this.videos.forEach(v => {
-      const isPublished = v.status === 'published' || (v.youtubeVideoId && String(v.youtubeVideoId).trim().length > 0);
-      const isFailed = !isPublished && (v.status === 'failed' || (v.error && String(v.error).trim().length > 0));
+      const isPublished = v.status === 'published' || Boolean(v.youtubeVideoId && String(v.youtubeVideoId).trim().length > 0);
+      const isFailed = !isPublished && (v.status === 'failed' || Boolean(v.error && String(v.error).trim().length > 0));
 
       if (isPublished) {
         v.effectiveStatus = 'published';
-        v.publishedDisplayDate = v.publishedAt || v.publishedDate || v.uploadedDate || v.scheduledAt || null;
+        v.publishedDisplayDate = v.publishedAt || v.publishedDate || v.uploadedDate || null;
       } else if (isFailed) {
         v.effectiveStatus = 'failed';
         v.publishedDisplayDate = null;
@@ -271,7 +216,7 @@ class DashboardApp {
     let slotIdx = 0;
     const usedDatesSet = new Set(publishedDatesSet);
 
-    // If there are failed videos with an original scheduled date on or before baseStartDate, skip past their failure date to advance to next day slot
+    // Record original scheduled dates of failed videos
     this.videos.forEach(v => {
       if (v.effectiveStatus === 'failed' && v.scheduledAt) {
         const fDate = new Date(v.scheduledAt);
@@ -309,7 +254,7 @@ class DashboardApp {
     });
   }
 
-  // Metrics Grid Calculations
+  // Metrics Grid Calculations from real project videos array
   renderMetrics() {
     const total = this.videos.length;
     const pending = this.videos.filter(v => v.effectiveStatus === 'pending').length;
@@ -492,6 +437,16 @@ class DashboardApp {
     const emptyState = document.getElementById('empty-state');
     if (!tbody) return;
 
+    if (this.loadError && this.videos.length === 0) {
+      tbody.innerHTML = '';
+      if (emptyState) {
+        emptyState.style.display = 'block';
+        emptyState.querySelector('h3').textContent = 'Error Loading Real Data';
+        emptyState.querySelector('p').textContent = this.loadError;
+      }
+      return;
+    }
+
     const filtered = this.videos.filter(v => {
       const matchesFilter = this.currentFilter === 'all' || v.effectiveStatus === this.currentFilter;
       const q = this.searchQuery.toLowerCase();
@@ -505,7 +460,11 @@ class DashboardApp {
 
     if (filtered.length === 0) {
       tbody.innerHTML = '';
-      if (emptyState) emptyState.style.display = 'block';
+      if (emptyState) {
+        emptyState.style.display = 'block';
+        emptyState.querySelector('h3').textContent = 'No matching videos found';
+        emptyState.querySelector('p').textContent = 'Try adjusting your search criteria or status filter.';
+      }
       return;
     }
 
@@ -513,8 +472,8 @@ class DashboardApp {
 
     tbody.innerHTML = filtered.map(v => {
       const displayDate = v.effectiveStatus === 'published'
-        ? (v.publishedDisplayDate || v.effectiveScheduledAt)
-        : (v.effectiveScheduledAt || v.scheduledAt);
+        ? (v.publishedDisplayDate ? this.formatDate(v.publishedDisplayDate) : 'N/A')
+        : (v.effectiveScheduledAt ? this.formatDate(v.effectiveScheduledAt) : (v.scheduledAt ? this.formatDate(v.scheduledAt) : 'N/A'));
 
       return `
         <tr>
@@ -537,7 +496,7 @@ class DashboardApp {
             <span class="badge-status ${v.effectiveStatus}">${v.effectiveStatus}</span>
           </td>
           <td>
-            <span style="font-size: 0.875rem;">${displayDate ? this.formatDate(displayDate) : '<span style="color: var(--text-muted);">Unscheduled</span>'}</span>
+            <span style="font-size: 0.875rem;">${displayDate === 'N/A' ? '<span style="color: var(--text-muted);">Unscheduled</span>' : displayDate}</span>
           </td>
           <td>
             ${v.youtubeUrl ? `
@@ -556,7 +515,6 @@ class DashboardApp {
 
   // Event Listeners
   bindEvents() {
-    // Schedule Form Change & Submit
     const vpdSelect = document.getElementById('sched-vpd');
     const time2Input = document.getElementById('sched-time-2');
     if (vpdSelect && time2Input) {
@@ -582,10 +540,8 @@ class DashboardApp {
           timezone: 'Asia/Kolkata'
         };
 
-        // Recalculate dynamic schedule
         this.computeEffectiveSchedule();
 
-        // Re-render dashboard components
         this.renderMetrics();
         this.renderNextUpload();
         this.renderScheduleTimeline();

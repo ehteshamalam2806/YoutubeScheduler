@@ -125,15 +125,9 @@ window.VIDEOS_DATA = {
       "tags": [ "Ehtes Wanderlens", "Wanderlens 28", "Wanderlens", "emotional status", "sad status", "heart touching status", "sad quotes hindi", "sad shayari", "youtube shorts", "instagram reels", "bike ride", "bike vlog", "travel vlog", "road trip", "cinematic ride", "travel reels", "Hindi shayari", "Hinglish shayari", "love shayari", "motivational shayari", "romantic quotes", "life quotes", "biker lifestyle", "India travel", "scenic rides" ],
       "status": "published",
       "scheduledAt": "2026-08-18T05:30:00.000Z",
-<<<<<<< HEAD
       "youtubeVideoId": "lbsSH903yQg",
       "youtubeUrl": "https://www.youtube.com/watch?v=lbsSH903yQg",
       "publishedAt": "2026-08-21T15:05:26.524Z",
-=======
-      "youtubeVideoId": "Sl7LDE6ri58",
-      "youtubeUrl": "https://www.youtube.com/watch?v=Sl7LDE6ri58",
-      "publishedAt": "2026-08-21T15:00:37.637Z",
->>>>>>> 5c82fb3b0066a0cfac8136c32bf34831d286be3e
       "error": null
     },
     {
