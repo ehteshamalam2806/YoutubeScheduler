@@ -192,17 +192,27 @@ class DashboardApp {
       }
     });
 
-    // 3. Determine base start date
-    let baseStartDate = new Date(this.scheduleConfig.startDate || '2026-08-10');
-    if (isNaN(baseStartDate.getTime())) {
-      baseStartDate = new Date('2026-08-10');
-    }
+    // 3. Determine base start date for dynamic slot allocation:
+    // Slots for unuploaded videos start on or after the NEXT available date relative to latest published video or today
+    const now = new Date();
+    let baseStartDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    const firstScheduled = this.videos.find(v => v.scheduledAt);
-    if (firstScheduled) {
-      const firstDate = new Date(firstScheduled.scheduledAt);
-      if (!isNaN(firstDate.getTime()) && firstDate < baseStartDate) {
-        baseStartDate = new Date(firstDate.getFullYear(), firstDate.getMonth(), firstDate.getDate());
+    let latestPublishedDate = null;
+    this.videos.forEach(v => {
+      if (v.effectiveStatus === 'published' && v.publishedDisplayDate) {
+        const d = new Date(v.publishedDisplayDate);
+        if (!isNaN(d.getTime())) {
+          if (!latestPublishedDate || d > latestPublishedDate) {
+            latestPublishedDate = d;
+          }
+        }
+      }
+    });
+
+    if (latestPublishedDate) {
+      const nextDayAfterPublished = new Date(latestPublishedDate.getFullYear(), latestPublishedDate.getMonth(), latestPublishedDate.getDate() + 1);
+      if (nextDayAfterPublished > baseStartDate) {
+        baseStartDate = nextDayAfterPublished;
       }
     }
 
@@ -297,12 +307,9 @@ class DashboardApp {
 
   // Next Upload Spotlight Card
   renderNextUpload() {
-    const now = new Date();
-    const scheduledVideos = this.videos
-      .filter(v => v.effectiveStatus === 'scheduled' && v.effectiveScheduledAt)
-      .sort((a, b) => new Date(a.effectiveScheduledAt) - new Date(b.effectiveScheduledAt));
-
-    const nextVideo = scheduledVideos.find(v => new Date(v.effectiveScheduledAt) > now) || scheduledVideos[0];
+    // The next upload candidate is ALWAYS the FIRST unuploaded video in video queue order
+    const nextVideo = this.videos.find(v => v.effectiveStatus === 'scheduled' || v.effectiveStatus === 'pending')
+      || this.videos.find(v => v.effectiveStatus !== 'published');
 
     const titleEl = document.getElementById('next-title');
     const descEl = document.getElementById('next-description');
@@ -311,7 +318,7 @@ class DashboardApp {
 
     if (!nextVideo) {
       if (titleEl) titleEl.textContent = 'No upcoming videos scheduled';
-      if (descEl) descEl.textContent = 'Run "npm run scan" to detect new files and assign a schedule timestamp.';
+      if (descEl) descEl.textContent = 'All videos in queue have been successfully published.';
       if (dateEl) dateEl.textContent = 'N/A';
       if (fileEl) fileEl.textContent = 'N/A';
       this.setCountdownValues(0, 0, 0, 0);
