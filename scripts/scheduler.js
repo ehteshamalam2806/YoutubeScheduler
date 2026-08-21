@@ -41,12 +41,12 @@ emotional status, sad status, heart touching status, broken heart status, sad qu
 
 const DEFAULT_CHANNEL_TAGS = [
   "Ehtes Wanderlens", "Wanderlens 28", "Wanderlens", "emotional status",
-  "sad status", "heart touching status", "broken heart status", "sad quotes hindi",
-  "emotional quotes hindi", "dard bhara status", "hindi status", "sad shayari",
-  "heart touching shayari", "viral shorts", "youtube shorts", "instagram reels",
-  "bike ride", "bike vlog", "travel vlog", "road trip",
-  "cinematic ride", "Hindi shayari", "love shayari", "motivational shayari",
-  "biker lifestyle", "India travel"
+  "sad status", "heart touching status", "sad quotes hindi", "sad shayari",
+  "youtube shorts", "instagram reels", "bike ride", "bike vlog",
+  "travel vlog", "road trip", "cinematic ride", "travel reels",
+  "Hindi shayari", "Hinglish shayari", "love shayari", "motivational shayari",
+  "romantic quotes", "life quotes", "biker lifestyle", "India travel",
+  "scenic rides"
 ];
 
 /**

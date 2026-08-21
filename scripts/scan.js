@@ -34,14 +34,8 @@ const DEFAULT_CHANNEL_TAGS = [
   "emotional status",
   "sad status",
   "heart touching status",
-  "broken heart status",
   "sad quotes hindi",
-  "emotional quotes hindi",
-  "dard bhara status",
-  "hindi status",
   "sad shayari",
-  "heart touching shayari",
-  "viral shorts",
   "youtube shorts",
   "instagram reels",
   "bike ride",
@@ -49,11 +43,16 @@ const DEFAULT_CHANNEL_TAGS = [
   "travel vlog",
   "road trip",
   "cinematic ride",
+  "travel reels",
   "Hindi shayari",
+  "Hinglish shayari",
   "love shayari",
   "motivational shayari",
+  "romantic quotes",
+  "life quotes",
   "biker lifestyle",
-  "India travel"
+  "India travel",
+  "scenic rides"
 ];
 
 /**

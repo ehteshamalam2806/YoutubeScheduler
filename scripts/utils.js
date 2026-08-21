@@ -50,7 +50,7 @@ export function formatJsonWithSingleLineTags(dataObj) {
  * @param {number} maxTotalLength 
  * @returns {Array<string>} Safe array of tags
  */
-export function sanitizeTags(tags = [], maxTotalLength = 480) {
+export function sanitizeTags(tags = [], maxTotalLength = 360) {
   if (!Array.isArray(tags)) return [];
   const safeTags = [];
   let currentLength = 0;
