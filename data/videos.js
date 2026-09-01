@@ -279,11 +279,11 @@ window.VIDEOS_DATA = {
       "title": "Pyar Ki suruaat Aakhon Se Hoti Hai..",
       "description": "Welcome to Ehte's Wanderlens ❤️\n\nA journey of bikes, roads, travel, emotions and unforgettable moments. 🏍️✨\nHere you’ll find cinematic bike rides, travel adventures, scenic views, Shayari, love, motivation and moments captured straight from the heart.\n\n📸 Instagram: https://www.instagram.com/wanderlens_28\n▶️ YouTube: Ehte's Wanderlens\n\nIf you love riding, travelling, exploring new places and feeling every moment, you’re in the right place. 🌍❤️\n\nSubscribe to Ehte's Wanderlens and join the journey. 🔔\n\n--------------------------------------------------\nKeywords & SEO Tags:\nemotional status, sad status, heart touching status, broken heart status, sad quotes hindi, emotional quotes hindi, dard bhara status, hindi status, sad shayari, heart touching shayari, viral shorts, youtube shorts, instagram reels, emotional video hindi, feeling lonely status, motivational shayari hindi, romantic status, breakup status, deep life quotes, bike rider status, cinematic travel shorts, reels instagram, trending shorts, status video\n\n#EhtesWanderlens #Wanderlens28 #BikeRide #TravelVlog #BikeVlog #Travel #Shayari #Motivation #Love #RoadTrip #BikerLife #SadShayari #EmotionalStatus #ViralShorts #YouTubeShorts #InstagramReels",
       "tags": [ "Ehtes Wanderlens", "Wanderlens 28", "Wanderlens", "emotional status", "sad status", "heart touching status", "sad quotes hindi", "sad shayari", "youtube shorts", "instagram reels", "bike ride", "bike vlog", "travel vlog", "road trip", "cinematic ride", "travel reels", "Hindi shayari", "Hinglish shayari", "love shayari", "motivational shayari", "romantic quotes", "life quotes", "biker lifestyle", "India travel", "scenic rides" ],
-      "status": "scheduled",
+      "status": "published",
       "scheduledAt": "2026-08-30T05:30:00.000Z",
-      "youtubeVideoId": null,
-      "youtubeUrl": null,
-      "publishedAt": null,
+      "youtubeVideoId": "yYHKN8Z3sfg",
+      "youtubeUrl": "https://www.youtube.com/watch?v=yYHKN8Z3sfg",
+      "publishedAt": "2026-09-01T10:21:46.070Z",
       "error": null
     },
     {
