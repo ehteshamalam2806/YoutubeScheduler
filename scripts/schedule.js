@@ -84,18 +84,39 @@ function runScheduler() {
     return;
   }
 
-  const vpd = Math.min(2, Math.max(1, config.videosPerDay || 1));
-  const uploadTimes = config.uploadTimes || ["12:30", "19:30"];
-  
-  // Parse start date
-  let startDate = new Date(config.startDate || new Date().toISOString().split('T')[0]);
-  if (isNaN(startDate.getTime())) {
-    startDate = new Date();
+  // Parse start date: check CLI arg, or find day after latest scheduled/published video, or config.startDate
+  let startDate;
+  const startDateArgIdx = args.indexOf('--start-date');
+  if (startDateArgIdx !== -1 && args[startDateArgIdx + 1]) {
+    startDate = new Date(args[startDateArgIdx + 1]);
+  } else {
+    const existingDates = videos
+      .filter(v => (v.status === 'scheduled' || v.status === 'published') && v.scheduledAt)
+      .map(v => new Date(v.scheduledAt))
+      .filter(d => !isNaN(d.getTime()));
+
+    if (existingDates.length > 0) {
+      const maxDate = new Date(Math.max(...existingDates));
+      maxDate.setDate(maxDate.getDate() + 1);
+      startDate = maxDate;
+    } else if (config.startDate) {
+      startDate = new Date(config.startDate);
+    } else {
+      startDate = new Date();
+    }
   }
+
+  const yyyyStr = startDate.getFullYear();
+  const mmStr = String(startDate.getMonth() + 1).padStart(2, '0');
+  const ddStr = String(startDate.getDate()).padStart(2, '0');
+  const startDateFormatted = `${yyyyStr}-${mmStr}-${ddStr}`;
+
+  const vpd = Math.min(2, Math.max(1, config.videosPerDay || 1));
+  const uploadTimes = config.uploadTimes || ["11:00"];
 
   console.log(`=== YouTube Shorts Scheduler ===`);
   console.log(`Mode: ${isDryRun ? 'DRY RUN (Preview Only)' : 'LIVE EXECUTION'}`);
-  console.log(`Start Date: ${config.startDate}`);
+  console.log(`Start Date: ${startDateFormatted}`);
   console.log(`Videos Per Day: ${vpd}`);
   console.log(`Upload Times (IST): ${uploadTimes.slice(0, vpd).join(', ')}`);
   console.log(`Pending Videos to Schedule: ${pendingVideos.length}`);
@@ -107,7 +128,7 @@ function runScheduler() {
 
   while (pendingIdx < pendingVideos.length) {
     for (let slot = 0; slot < vpd && pendingIdx < pendingVideos.length; slot++) {
-      const timeStr = uploadTimes[slot] || (slot === 0 ? "12:30" : "19:30");
+      const timeStr = uploadTimes[slot] || (slot === 0 ? "11:00" : "19:30");
       const scheduledIso = createKolkataTimestamp(currentDate, timeStr);
       const video = pendingVideos[pendingIdx];
 
