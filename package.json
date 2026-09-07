@@ -10,6 +10,7 @@
     "auth": "node scripts/auth.js",
     "upload": "node scripts/upload.js",
     "scheduler": "node scripts/scheduler.js",
+    "generate-titles": "python scripts/generate_titles.py",
     "test:utils": "node scripts/utils.js"
   },
   "keywords": [
